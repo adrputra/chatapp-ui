@@ -1,10 +1,11 @@
 // pages/index.tsx
 import Head from "next/head";
 import { Inter } from "next/font/google";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { ToastContainer } from 'react-toastify';
 import { Button, FormControl, Form } from "react-bootstrap";
 import styled from "styled-components";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { useRouter } from "next/router";
 
@@ -42,7 +43,7 @@ export default function Home() {
   const [isValidEmail, setIsValidEmail] = useState(false);
   const router = useRouter();
 
-  const verifyEmail = (e) => {
+  const verifyEmail = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const inputEmail = e.target.value;
     setEmail(inputEmail);
 
@@ -63,27 +64,33 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <LoginWrapper>
-        <Form.Control type="email"
-            value={email}
-            onChange={(e) => verifyEmail(e)}
-            placeholder="Enter your email"
-            height={40}
-          />
-          {!isValidEmail && (
-            <FormControl.Feedback type="invalid">
-              <p>Please enter a valid email address.</p>
-            </FormControl.Feedback>
-          )}
-          <Button
-            onClick={() => router.push(`/chat/${email}`)}
-            style={{ marginTop: "10px" }}
-            color="#3f6600"
-            disabled={!isValidEmail}
-          >
-            Lets Chat!!!
-          </Button>
-        </LoginWrapper>
+        <form onSubmit={(e) => {
+          e.preventDefault()
+          router.push(`/chat/${email.toLowerCase()}`)
+          }}>
+          <LoginWrapper>
+            <Form.Control type="email"
+                value={email}
+                onChange={(e) => verifyEmail(e)}
+                placeholder="Enter your email"
+                height={40}
+              />
+              {!isValidEmail && (
+                <FormControl.Feedback type="invalid">
+                  <p>Please enter a valid email address.</p>
+                </FormControl.Feedback>
+              )}
+              <Button
+                as="input"
+                // onClick={() => router.push(`/chat/${email}`)}
+                style={{ marginTop: "10px" }}
+                color="#3f6600"
+                disabled={!isValidEmail}
+                type="submit"
+                value="Lets Chat!!!"
+                />
+            </LoginWrapper>
+          </form>
       </main>
     </>
   );

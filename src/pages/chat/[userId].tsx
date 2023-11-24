@@ -5,10 +5,16 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Button, Form, FormControl } from "react-bootstrap";
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, SetStateAction } from "react";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
 import { ChatBox } from "..";
+import styled from "styled-components";
+
+const LoginWrapper = styled(ChatBox)`
+  width: 400px; /* Adjust the width */
+  padding: 20px; /* Adjust the padding */
+`;
 
 export default function ChatRoomEntry(props: { userId: string }) {
   const { userId } = props;
@@ -25,7 +31,7 @@ export default function ChatRoomEntry(props: { userId: string }) {
 
   const router = useRouter();
 
-  const enterChat = (roomId) => {
+  const enterChat = (roomId: SetStateAction<string>) => {
     setRoomID(roomId)
     const ws = new WebSocket(baseURL);
     setWs(ws);
@@ -56,9 +62,8 @@ export default function ChatRoomEntry(props: { userId: string }) {
     };
   };
 
-  const sendMessage = (roomId) => {
+  const sendMessage = (roomId: string) => {
     if (message && message !== "") {
-      console.log("SEND MESSAGE", message, roomId, userId);
       
       ws?.send(
         JSON.stringify({
@@ -81,12 +86,12 @@ export default function ChatRoomEntry(props: { userId: string }) {
     setMessages((prev) => [...prev, value]);
   };
 
-  const HandleRoomID = (e) => {
-    const inputRoomID = e.target.value;
+  const HandleRoomID = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const inputRoomID = e.target.value.replace(/\D/g, '');
     setRoomID(inputRoomID)
   }
 
-  const verifyRoomID = (e) => {
+  const verifyRoomID = (e: string) => {
     const isValidRoomID = /^\d{6}$/.test(e);
     if (isValidRoomID) {
       return true
@@ -123,7 +128,7 @@ export default function ChatRoomEntry(props: { userId: string }) {
             className="site-page-header-responsive"
             title="WebChat"
             extra={[
-              <Button key="1" variant="primary" onClick={handleLogout}>
+              <Button key="1" variant="danger" onClick={handleLogout}>
                 Logout
               </Button>,
             ]}
@@ -134,24 +139,36 @@ export default function ChatRoomEntry(props: { userId: string }) {
               <Status status="You are online" color="green" />
               <Messages messages={messages} currentUser={userId} />
               <div className="chat-inputs">
-                <Form.Control
-                  size="lg"
-                  placeholder="Write message"
-                  onChange={(e) => setMessage(e.target.value)}
-                  value={message}
-                />
-                <Button
-                  variant="primary"
-                  onClick={() => sendMessage(roomID)}
-                >
-                  Send Message
-                </Button>
+                <form onSubmit={(e) => {
+                  e.preventDefault()
+                  sendMessage(roomID)}
+                  }>
+              <LoginWrapper>
+                  <Form.Control
+                    // size="lg"
+                    type="text"
+                    placeholder="Write message"
+                    onChange={(e) => setMessage(e.target.value)}
+                    value={message}
+                  />
+                  <Button
+                    style={{ marginTop: "10px" }}
+                    variant="success"
+                    // onClick={() => sendMessage(roomID)}
+                    type="submit"
+                    size="sm"
+                  >
+                    Send Message
+                  </Button>
+              </LoginWrapper>
+                  </form>
               </div>
             </ChatBox>
           ) : (
             <ChatBox style={{ marginTop: "50px" }}>
               <h1>WebChat</h1>
               <Status status="You are offline" color="red" />
+
               <Button style={{ marginTop: "5px" }}
                 variant="primary"
                 onClick={() => generateNewRoom()}
@@ -159,26 +176,34 @@ export default function ChatRoomEntry(props: { userId: string }) {
                 Create New Chat Room
               </Button>
 
-                <Form.Control type="text" style={{ marginTop: "50px" }}
-                  value={roomID}
-                  onChange={(e) => HandleRoomID(e)}
-                  placeholder="Enter your email"
-                  height={40}
-                />
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                enterChat(roomID.toString())
+                }}>
+                  
+                <LoginWrapper>
+                  <Form.Control type="text" style={{ marginTop: "50px", marginBottom: "10px"}}
+                    value={roomID}
+                    onChange={(e) => HandleRoomID(e)}
+                    placeholder="Enter Room ID"
+                    height={40}
+                  />
 
-                {!roomID && (
-                  <FormControl.Feedback type="invalid">
-                    <p>Please Enter Room ID.</p>
-                  </FormControl.Feedback>
-                )}
+                  {roomID === "" && (
+                    <Status status="Please Enter Room ID" color="red" />
+                  )}
 
-                <Button style={{ marginTop: "10px" }}
-                  variant="primary"
-                  onClick={() => enterChat(roomID.toString())}
-                  disabled={!verifyRoomID(roomID)}
-                  >
-                  Join Room
-                </Button>
+                  <Button style={{ marginTop: "10px" }}
+                    
+                    as="input"
+                    variant="primary"
+                    // onClick={() => enterChat(roomID.toString())}
+                    disabled={!verifyRoomID(roomID)}
+                    type="submit"
+                    value="Join Room"
+                  />
+                </LoginWrapper>
+              </form>
 
             </ChatBox>
           )}

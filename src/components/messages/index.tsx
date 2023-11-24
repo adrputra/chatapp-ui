@@ -20,6 +20,7 @@ const SelfMesssage = styled.div`
     border-radius: 10px;
     padding: 10px;
     margin-top: 10px;
+    box-shadow: 0 4px 8px rgba(16, 142, 233, 0.2), 0 8px 16px rgba(16, 142, 233, 0.3); /* Add more intense box shadow */
   }
 `;
 
@@ -33,7 +34,6 @@ const Messages: React.FC<iMessage> = ({ messages, currentUser }) => {
     return (
       <Wrapper>
         {messages.map((message, id) => {
-          console.log(message.sender?.split("@")[0]);
           
           if (message.sender === currentUser) {
             return (
